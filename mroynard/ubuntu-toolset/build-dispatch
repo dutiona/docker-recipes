@@ -2,37 +2,38 @@
 
 set -e
 
-BUILD_GENERATOR="Unix Makefiles"
-BUILD_DIR="build-in-docker"
-SOURCE_DIR=".."
-BUILD_COMPILER="gcc"
-BUILD_TARGET="all"
-BUILD_TYPE="Debug"
+BUILD_DIRECTORY="build-in-docker"
+CMAKE_GENERATOR="Unix Makefiles"
+COMPILER="gcc"
 FORCE=""
+RELEASE_TYPE="Debug"
+SOURCE_DIRECTORY=".."
+TARGET="all"
+TOOLCHAIN_ARGS=""
 VERBOSE=""
-UNDERLYING_ARGS=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
 where:
     -h --help                       show this help text
     -c --compiler gcc|clang         select the compiler to use
                                     default = gcc
-    -g --cmake-generator Gen        use provided cmake generator
+    -g --cmake-generator Generator  use provided cmake generator
                                     default = Unix Makefiles
-    -d --build-directory Dir        use provided build directory for build artifacts (on host)
+    -b --build-directory Directory  use provided build directory for build artifacts (on host)
                                     default = build-in-docker
-    -s --source-directory Dir       use provided source directory to compile
+    -s --source-directory Directory use provided source directory to compile
                                     default = ..
-    -t --target                     build target passed to the generated toolchain (make target)
+    -t --target Target              build target passed to the generated toolchain (make target)
                                     default = all
-    -r --release-type               build type. Release|Debug|RelWithDebInfo|MinSizeRel
+    -r --release-type ReleaseType   build type. Release|Debug|RelWithDebInfo|MinSizeRel
                                     default = Debug
 
     -v --verbose                    if passed, enable verbose to underlying commands
 
     -f --force                      empty build directory to force a full rebuild
     
-    --                              end of arguments for script, pass the rest to cmake
+    --                              end of arguments for script, pass the rest to the toolchain via cmake
+                                    useful for passing -D arguments
     "
 
 while [[ $# -gt 0 ]]
@@ -52,59 +53,57 @@ case $key in
     shift
     ;;
     -c|--compiler)
-    BUILD_COMPILER="$2"
+    COMPILER="$2"
     shift 2
     ;;
     -g|--cmake-generator)
-    BUILD_GENERATOR="$2"
+    CMAKE_GENERATOR="$2"
     shift 2
     ;;
-    -d|--build-directory)
-    BUILD_DIR="$2"
+    -b|--build-directory)
+    BUILD_DIRECTORY="$2"
     shift 2
     ;;
     -s|--source-directory)
-    SOURCE_DIR="$2"
+    SOURCE_DIRECTORY="$2"
     shift 2
     ;;
     -t|--target)
-    BUILD_TARGET="$2"
+    TARGET="$2"
     shift 2
     ;;
     -r|--release-type)
-    BUILD_TYPE="$2"
+    RELEASE_TYPE="$2"
     shift 2
     ;;
     --)
     shift
     ;;
     *)
-    UNDERLYING_ARGS="$UNDERLYING_ARGS $1"
+    TOOLCHAIN_ARGS="$TOOLCHAIN_ARGS $1"
     shift
     ;;
 esac
 done
 
-mkdir -p $BUILD_DIR
-
-echo " * Cmake generator (docker) : <$BUILD_GENERATOR>"
-echo " * Build directory (host) : <$BUILD_DIR>"
-echo " * Source directory (host) : <$SOURCE_DIR>"
-echo " * Compiler (docker) : <$BUILD_COMPILER>"
-echo " * Target to build (docker) : <$BUILD_TARGET>"
-echo " * Build type (docker) : <$BUILD_TYPE>"
-echo " * Additional toolchain arguments (docker) : <$UNDERLYING_ARGS>"
+echo " * Cmake generator : <$CMAKE_GENERATOR>"
+echo " * Build directory : <$BUILD_DIRECTORY>"
+echo " * Source directory : <$SOURCE_DIRECTORY>"
+echo " * Compiler : <$COMPILER>"
+echo " * Target to build (docker) : <$TARGET>"
+echo " * Release type (docker) : <$RELEASE_TYPE>"
+echo " * Additional toolchain arguments (docker) : <$TOOLCHAIN_ARGS>"
 echo " * CMake version"
 cmake --version
 
-if [ "$BUILD_COMPILER" == "gcc" ] || [ "$BUILD_COMPILER" == "g++" ]; then
+if [ "$COMPILER" == "gcc" ] || [ "$COMPILER" == "g++" ]; then
     echo " * Choosing gcc compiler"
     g++ --version
     CMAKE_CC="gcc"
     CMAKE_CXX="g++"
 fi
 
-if [ "$BUILD_COMPILER" == "clang" ] || [ "$BUILD_COMPILER" == "clang++" ]; then
+if [ "$COMPILER" == "clang" ] || [ "$COMPILER" == "clang++" ]; then
     echo " * Choosing clang compiler"
     clang-5.0 --version
     CMAKE_CC="clang-5.0"
@@ -114,13 +113,15 @@ fi
 export CC=$CMAKE_CC
 export CXX=$CMAKE_CXX
 
-pushd $BUILD_DIR
+mkdir -p $BUILD_DIRECTORY
+
+pushd $BUILD_DIRECTORY
 
     if [ "$FORCE" != "" ]; then
         rm -rf ./*
     fi
 
-    $VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR $UNDERLYING_ARGS
-    $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
+    $VERBOSE cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $UNDERLYING_ARGS
+    $VERBOSE cmake --build . --target $TARGET --config $RELEASE_TYPE
 
 popd
