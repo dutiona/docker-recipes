@@ -10,6 +10,7 @@ BUILD_TARGET="all"
 BUILD_TYPE="Debug"
 BUILD_CMAKE_ARGUMENTS=""
 BUILD_TOOLCHAIN_ARGUMENTS=""
+FORCE=""
 VERBOSE=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
@@ -26,6 +27,10 @@ where:
     -t --target                     build target passed to the generated toolchain (make target)
                                     default = all
     -v --verbose                    if passed, enable verbose to underlying commands
+
+    -r --release-type               build type. Release|Debug|RelWithDebInfo|MinSizeRel
+                                    default = Debug
+    -f --force                      mpty build directory to force a full rebuild
     
     --cmake-arguments=(args...)     arguments to pass to cmake (-D...)
 
@@ -44,47 +49,43 @@ case $key in
     ;;
     -c|--compiler)
     BUILD_COMPILER="$2"
-    shift
-    shift
+    shift 2
     ;;
     -g|--cmake-generator)
     BUILD_GENERATOR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -d|--build-directory)
     BUILD_DIR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -s|--source-directory)
     SOURCE_DIR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -t|--target)
     BUILD_TARGET="$2"
-    shift
-    shift
+    shift 2
     ;;
     -r|--release-type)
     BUILD_TYPE="$2"
-    shift
+    shift 2
+    ;;
+    -f|--force)
+    FORCE="--force"
     shift
     ;;
     -v|--verbose)
-    VERBOSE="VERBOSE=1"
+    VERBOSE="--verbose"
     shift
     ;;
     --cmake-arguments=*)
     BUILD_CMAKE_ARGUMENTS="${i#*=}"
-    shift
-    shift
+    shift 2
     ;;
     --toolchain-arguments=*)
     BUILD_TOOLCHAIN_ARGUMENTS="${i#*=}"
-    shift
-    shift
+    shift 2
     ;;
     *)
     POSITIONAL+=("$1")
@@ -97,15 +98,17 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 docker run --rm \
     -it \
     --name docker-builder \
-    --mount type=bind,source="$(pwd)",target=/app \
+    --mount type=bind,source="$(pwd)",target=/workspace \
     mroynard/ubuntu-toolset:latest \
-    #build-dispatch \
-    #    -c "$BUILD_COMPILER" \
-    #    -g "$BUILD_GENERATOR" \
-    #    -d "$BUILD_DIR" \
-    #    -s "$SOURCE_DIR" \
-    #    -t "$BUILD_TARGET" \
-    #    -r "$BUILD_TYPE" \
-    #    --cmake-arguments="$BUILD_CMAKE_ARGUMENTS" \
-    #    --toolchain-arguments="$BUILD_TOOLCHAIN_ARGUMENTS"
-    #    #--cmake-arguments=-DWITH_EXAMPLES=ON -DWITH_BENCHMARK=ON
+    build-dispatch \
+        -c "$BUILD_COMPILER" \
+        -g "$BUILD_GENERATOR" \
+        -d "$BUILD_DIR" \
+        -s "$SOURCE_DIR" \
+        -t "$BUILD_TARGET" \
+        -r "$BUILD_TYPE" \
+        $VERBOSE \
+        $FORCE \
+        --cmake-arguments="$BUILD_CMAKE_ARGUMENTS" \
+        --toolchain-arguments="$BUILD_TOOLCHAIN_ARGUMENTS"
+        #--cmake-arguments=-DWITH_EXAMPLES=ON -DWITH_BENCHMARK=ON

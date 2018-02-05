@@ -11,6 +11,7 @@ BUILD_TYPE="Debug"
 BUILD_CMAKE_ARGUMENTS=""
 BUILD_TOOLCHAIN_ARGUMENTS=""
 VERBOSE=""
+FORCE=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
 where:
@@ -26,6 +27,10 @@ where:
     -t --target                     build target passed to the generated toolchain (make target)
                                     default = all
     -v --verbose                    if passed, enable verbose to underlying commands
+
+    -r --release-type               build type. Release|Debug|RelWithDebInfo|MinSizeRel
+                                    default = Debug
+    -f --force                      mpty build directory to force a full rebuild
     
     --cmake-arguments=(args...)     arguments to pass to cmake (-D...)
 
@@ -44,32 +49,30 @@ case $key in
     ;;
     -c|--compiler)
     BUILD_COMPILER="$2"
-    shift
-    shift
+    shift 2
     ;;
     -g|--cmake-generator)
     BUILD_GENERATOR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -d|--build-directory)
     BUILD_DIR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -s|--source-directory)
     SOURCE_DIR="$2"
-    shift
-    shift
+    shift 2
     ;;
     -t|--target)
     BUILD_TARGET="$2"
-    shift
-    shift
+    shift 2
     ;;
     -r|--release-type)
     BUILD_TYPE="$2"
-    shift
+    shift 2
+    ;;
+    -f|--force)
+    FORCE="1"
     shift
     ;;
     -v|--verbose)
@@ -78,13 +81,11 @@ case $key in
     ;;
     --cmake-arguments=*)
     BUILD_CMAKE_ARGUMENTS="${i#*=}"
-    shift
-    shift
+    shift 2
     ;;
     --toolchain-arguments=*)
     BUILD_TOOLCHAIN_ARGUMENTS="${i#*=}"
-    shift
-    shift
+    shift 2
     ;;
     *)
     POSITIONAL+=("$1")
@@ -125,10 +126,16 @@ export CC=$CMAKE_CC
 export CXX=$CMAKE_CXX
 
 pushd $BUILD_DIR
-$VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR
-    if [ "$BUILD_TOOLCHAIN_ARGUMENTS" != "" ]; then
-$VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE -- $BUILD_TOOLCHAIN_ARGUMENTS
-    else
-$VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
+
+    if [ "$FORCE" != "" ]; then
+        rm -rf ./*
     fi
+
+    $VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR
+    if [ "$BUILD_TOOLCHAIN_ARGUMENTS" != "" ]; then
+        $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE -- $BUILD_TOOLCHAIN_ARGUMENTS
+    else
+        $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
+    fi
+    
 popd

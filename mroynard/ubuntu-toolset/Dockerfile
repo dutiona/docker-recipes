@@ -38,6 +38,6 @@ ADD ./build-dispatch /usr/local/bin/
 
 WORKDIR /workspace
 
-CMD ["/bin/bash"]
-#ENTRYPOINT ["/usr/local/bin/build-dispatch"]
-#CMD ["--help"]
+#CMD ["/bin/bash"]
+ENTRYPOINT ["/usr/local/bin/build-dispatch"]
+CMD ["--help"]
