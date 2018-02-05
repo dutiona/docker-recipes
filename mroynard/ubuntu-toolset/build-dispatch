@@ -2,16 +2,15 @@
 
 set -e
 
-BUILD_GENERATOR="\"Unix Makefiles\""
+BUILD_GENERATOR="Unix Makefiles"
 BUILD_DIR="build-in-docker"
 SOURCE_DIR=".."
 BUILD_COMPILER="gcc"
 BUILD_TARGET="all"
 BUILD_TYPE="Debug"
-BUILD_CMAKE_ARGUMENTS=""
-BUILD_TOOLCHAIN_ARGUMENTS=""
-VERBOSE=""
 FORCE=""
+VERBOSE=""
+UNDERLYING_ARGS=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
 where:
@@ -26,19 +25,16 @@ where:
                                     default = ..
     -t --target                     build target passed to the generated toolchain (make target)
                                     default = all
-    -v --verbose                    if passed, enable verbose to underlying commands
-
     -r --release-type               build type. Release|Debug|RelWithDebInfo|MinSizeRel
                                     default = Debug
-    -f --force                      mpty build directory to force a full rebuild
-    
-    --cmake-arguments=(args...)     arguments to pass to cmake (-D...)
 
-    --toolchain-arguments=(args...) argumennts to pass to underlying toolchain (passed after --)
-                                    passing -j4 here will result in cmake --build ... -- -j4
+    -v --verbose                    if passed, enable verbose to underlying commands
+
+    -f --force                      empty build directory to force a full rebuild
+    
+    --                              end of arguments for script, pass the rest to cmake
     "
 
-POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -46,6 +42,14 @@ case $key in
     -h|--help)
     echo "$USAGE"
     exit
+    ;;
+    -f|--force)
+    FORCE="1"
+    shift
+    ;;
+    -v|--verbose)
+    VERBOSE="VERBOSE=1"
+    shift
     ;;
     -c|--compiler)
     BUILD_COMPILER="$2"
@@ -71,29 +75,15 @@ case $key in
     BUILD_TYPE="$2"
     shift 2
     ;;
-    -f|--force)
-    FORCE="1"
+    --)
     shift
-    ;;
-    -v|--verbose)
-    VERBOSE="VERBOSE=1"
-    shift
-    ;;
-    --cmake-arguments=*)
-    BUILD_CMAKE_ARGUMENTS="${i#*=}"
-    shift 2
-    ;;
-    --toolchain-arguments=*)
-    BUILD_TOOLCHAIN_ARGUMENTS="${i#*=}"
-    shift 2
     ;;
     *)
-    POSITIONAL+=("$1")
+    UNDERLYING_ARGS="$UNDERLYING_ARGS $1"
     shift
     ;;
 esac
 done
-set -- "${POSITIONAL[@]}" # restore positional parameters
 
 mkdir -p $BUILD_DIR
 
@@ -103,8 +93,7 @@ echo " * Source directory (host) : <$SOURCE_DIR>"
 echo " * Compiler (docker) : <$BUILD_COMPILER>"
 echo " * Target to build (docker) : <$BUILD_TARGET>"
 echo " * Build type (docker) : <$BUILD_TYPE>"
-echo " * Additional cmake arguments (docker) : <$BUILD_CMAKE_ARGUMENTS>"
-echo " * Additional toolchain arguments (docker) : <$BUILD_TOOLCHAIN_ARGUMENTS>"
+echo " * Additional toolchain arguments (docker) : <$UNDERLYING_ARGS>"
 echo " * CMake version"
 cmake --version
 
@@ -131,11 +120,7 @@ pushd $BUILD_DIR
         rm -rf ./*
     fi
 
-    $VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR
-    if [ "$BUILD_TOOLCHAIN_ARGUMENTS" != "" ]; then
-        $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE -- $BUILD_TOOLCHAIN_ARGUMENTS
-    else
-        $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
-    fi
-    
+    $VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR $UNDERLYING_ARGS
+    $VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
+
 popd
