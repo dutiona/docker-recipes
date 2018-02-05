@@ -1,0 +1,134 @@
+#!/bin/bash
+
+set -e
+
+BUILD_GENERATOR="\"Unix Makefiles\""
+BUILD_DIR="build-in-docker"
+SOURCE_DIR=".."
+BUILD_COMPILER="gcc"
+BUILD_TARGET="all"
+BUILD_TYPE="Debug"
+BUILD_CMAKE_ARGUMENTS=""
+BUILD_TOOLCHAIN_ARGUMENTS=""
+VERBOSE=""
+USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
+
+where:
+    -h --help                       show this help text
+    -c --compiler gcc|clang         select the compiler to use
+                                    default = gcc
+    -g --cmake-generator Gen        use provided cmake generator
+                                    default = Unix Makefiles
+    -d --build-directory Dir        use provided build directory for build artifacts (on host)
+                                    default = build-in-docker
+    -s --source-directory Dir       use provided source directory to compile
+                                    default = ..
+    -t --target                     build target passed to the generated toolchain (make target)
+                                    default = all
+    -v --verbose                    if passed, enable verbose to underlying commands
+    
+    --cmake-arguments=(args...)     arguments to pass to cmake (-D...)
+
+    --toolchain-arguments=(args...) argumennts to pass to underlying toolchain (passed after --)
+                                    passing -j4 here will result in cmake --build ... -- -j4
+    "
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+    -h|--help)
+    echo "$USAGE"
+    exit
+    ;;
+    -c|--compiler)
+    BUILD_COMPILER="$2"
+    shift
+    shift
+    ;;
+    -g|--cmake-generator)
+    BUILD_GENERATOR="$2"
+    shift
+    shift
+    ;;
+    -d|--build-directory)
+    BUILD_DIR="$2"
+    shift
+    shift
+    ;;
+    -s|--source-directory)
+    SOURCE_DIR="$2"
+    shift
+    shift
+    ;;
+    -t|--target)
+    BUILD_TARGET="$2"
+    shift
+    shift
+    ;;
+    -r|--release-type)
+    BUILD_TYPE="$2"
+    shift
+    shift
+    ;;
+    -v|--verbose)
+    VERBOSE="VERBOSE=1"
+    shift
+    ;;
+    --cmake-arguments=*)
+    BUILD_CMAKE_ARGUMENTS="${i#*=}"
+    shift
+    shift
+    ;;
+    --toolchain-arguments=*)
+    BUILD_TOOLCHAIN_ARGUMENTS="${i#*=}"
+    shift
+    shift
+    ;;
+    *)
+    POSITIONAL+=("$1")
+    shift
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" # restore positional parameters
+
+mkdir -p $BUILD_DIR
+
+echo " * Cmake generator (docker) : <$BUILD_GENERATOR>"
+echo " * Build directory (host) : <$BUILD_DIR>"
+echo " * Source directory (host) : <$SOURCE_DIR>"
+echo " * Compiler (docker) : <$BUILD_COMPILER>"
+echo " * Target to build (docker) : <$BUILD_TARGET>"
+echo " * Build type (docker) : <$BUILD_TYPE>"
+echo " * Additional cmake arguments (docker) : <$BUILD_CMAKE_ARGUMENTS>"
+echo " * Additional toolchain arguments (docker) : <$BUILD_TOOLCHAIN_ARGUMENTS>"
+echo " * CMake version"
+cmake --version
+
+if [ "$BUILD_COMPILER" == "gcc" ] || [ "$BUILD_COMPILER" == "g++" ]; then
+    echo " * Choosing gcc compiler"
+    g++ --version
+    CMAKE_CC="gcc"
+    CMAKE_CXX="g++"
+fi
+
+if [ "$BUILD_COMPILER" == "clang" ] || [ "$BUILD_COMPILER" == "clang++" ]; then
+    echo " * Choosing clang compiler"
+    clang-5.0 --version
+    CMAKE_CC="clang-5.0"
+    CMAKE_CXX="clang++-5.0"
+fi
+
+export CC=$CMAKE_CC
+export CXX=$CMAKE_CXX
+
+pushd $BUILD_DIR
+$VERBOSE cmake -G $BUILD_GENERATOR $BUILD_CMAKE_ARGUMENTS $SOURCE_DIR
+    if [ "$BUILD_TOOLCHAIN_ARGUMENTS" != "" ]; then
+$VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE -- $BUILD_TOOLCHAIN_ARGUMENTS
+    else
+$VERBOSE cmake --build . --target $BUILD_TARGET --config $BUILD_TYPE
+    fi
+popd
