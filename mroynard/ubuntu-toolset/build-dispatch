@@ -121,7 +121,11 @@ pushd $BUILD_DIRECTORY
         rm -rf ./*
     fi
 
-    $VERBOSE cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $UNDERLYING_ARGS
-    $VERBOSE cmake --build . --target $TARGET --config $RELEASE_TYPE
+    if [ "$VERBOSE" != "" ]; then
+        set -x
+    fi
+
+    cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $UNDERLYING_ARGS
+    cmake --build . --target $TARGET --config $RELEASE_TYPE
 
 popd
