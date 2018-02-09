@@ -10,8 +10,17 @@ RUN set -xe && apt-get install -y \
     protobuf-compiler protobuf-c-compiler libtinyxml2-dev nlohmann-json-dev \
     glew-utils libglew-dev freeglut3-dev imagemagick libmagick++-dev libfreeimage-dev
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove -y && apt-get autoclean -y && rm -rf /var/lib/apt/lists/
-RUN echo y | pip install scan-build conan sphinx
-RUN echo y | pip3 install scan-build conan sphinx
+RUN echo y | pip install -U pip
+RUN echo y | pip install -U six wheel setuptools
+RUN echo y | pip install scan-build conan sphinx breathe exhale sphinx_rtd_theme \
+						 numpy scipy requests scrapy scapy nltk sympy \
+						 pillow sqlalchemy beautifulsoup twisted matplotlib pyglet
+
+RUN echo y | pip3 install -U pip
+RUN echo y | pip3 install -U six wheel setuptools			 
+RUN echo y | pip3 install scan-build conan sphinx breathe exhale sphinx_rtd_theme \
+						  numpy scipy requests scrapy nltk sympy \
+						  pillow sqlalchemy twisted matplotlib pyglet
 
 # Google Test
 WORKDIR /tmp/gtest
