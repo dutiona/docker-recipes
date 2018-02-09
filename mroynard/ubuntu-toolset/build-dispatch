@@ -125,7 +125,7 @@ pushd $BUILD_DIRECTORY
         set -x
     fi
 
-    cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $UNDERLYING_ARGS
+    cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
     cmake --build . --target $TARGET --config $RELEASE_TYPE
 
 popd
