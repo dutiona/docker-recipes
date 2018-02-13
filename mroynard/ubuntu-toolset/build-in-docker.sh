@@ -86,6 +86,10 @@ case $key in
 esac
 done
 
+CMAKE_GENERATOR_ARG=""
+if [ "$CMAKE_GENERATOR" != "" ]; then
+    CMAKE_GENERATOR_ARG="-g $CMAKE_GENERATOR"
+fi
 docker run --rm \
     -it \
     --name docker-builder \
@@ -94,8 +98,8 @@ docker run --rm \
         /usr/local/bin/build-dispatch \
         $VERBOSE \
         $FORCE \
+        $CMAKE_GENERATOR_ARG \
         -c $COMPILER \
-        -g $CMAKE_GENERATOR \
         -b $BUILD_DIRECTORY \
         -s $SOURCE_DIRECTORY \
         -t $TARGET \

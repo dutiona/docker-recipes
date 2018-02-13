@@ -7,20 +7,20 @@ RUN set -xe && apt-get install -y \
     gcc g++ gcc-6 g++-6 libgomp1 libpomp-dev curl wget libcurl4-openssl-dev \
     clang-5.0 lld-5.0 python-lldb-5.0 lldb-5.0 clang-tidy-5.0 clang-format-5.0 libomp5 \
     libboost-all-dev libpoco-dev catch libsdl2-dev libsfml-dev libeigen3-dev libtbb-dev \
-    protobuf-compiler protobuf-c-compiler libtinyxml2-dev nlohmann-json-dev \
+    protobuf-compiler protobuf-c-compiler libtinyxml2-dev nlohmann-json-dev doxygen vim \
     glew-utils libglew-dev freeglut3-dev imagemagick libmagick++-dev libfreeimage-dev
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove -y && apt-get autoclean -y && rm -rf /var/lib/apt/lists/
 RUN echo y | pip install -U pip
 RUN echo y | pip install -U six wheel setuptools
 RUN echo y | pip install scan-build conan sphinx breathe exhale sphinx_rtd_theme \
-						 numpy scipy requests scrapy scapy nltk sympy \
-						 pillow sqlalchemy beautifulsoup twisted matplotlib pyglet
+    numpy scipy requests scrapy scapy nltk sympy \
+    pillow sqlalchemy beautifulsoup twisted matplotlib pyglet
 
 RUN echo y | pip3 install -U pip
 RUN echo y | pip3 install -U six wheel setuptools			 
 RUN echo y | pip3 install scan-build conan sphinx breathe exhale sphinx_rtd_theme \
-						  numpy scipy requests scrapy nltk sympy \
-						  pillow sqlalchemy twisted matplotlib pyglet
+    numpy scipy requests scrapy nltk sympy \
+    pillow sqlalchemy twisted matplotlib pyglet
 
 # Google Test
 WORKDIR /tmp/gtest
