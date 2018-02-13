@@ -3,7 +3,7 @@
 set -e
 
 BUILD_DIRECTORY="build-in-docker"
-CMAKE_GENERATOR="Unix Makefiles"
+CMAKE_GENERATOR=""
 COMPILER="gcc"
 FORCE=""
 RELEASE_TYPE="Debug"
@@ -91,6 +91,7 @@ docker run --rm \
     --name docker-builder \
     --mount type=bind,source="$(pwd)",target=/workspace \
     mroynard/ubuntu-toolset:latest \
+        /usr/local/bin/build-dispatch \
         $VERBOSE \
         $FORCE \
         -c $COMPILER \

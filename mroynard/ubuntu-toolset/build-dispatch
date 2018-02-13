@@ -3,7 +3,7 @@
 set -e
 
 BUILD_DIRECTORY="build-in-docker"
-CMAKE_GENERATOR="Unix Makefiles"
+CMAKE_GENERATOR=""
 COMPILER="gcc"
 FORCE=""
 RELEASE_TYPE="Debug"
@@ -125,7 +125,12 @@ pushd $BUILD_DIRECTORY
         set -x
     fi
 
-    cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
-    cmake --build . --target $TARGET --config $RELEASE_TYPE
+    if [ "$CMAKE_GENERATOR" != "" ]; then
+        cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
+        cmake --build . --target $TARGET --config $RELEASE_TYPE
+    else
+        cmake $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
+        cmake --build . --target $TARGET --config $RELEASE_TYPE -- -j 4
+    fi
 
 popd
