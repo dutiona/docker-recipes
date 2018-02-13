@@ -4,7 +4,7 @@ LABEL maintainer="Michaël Roynard <mroynard@lrde.epita.fr>"
 RUN set -xe && apt-get update && apt-get upgrade -y
 RUN set -xe && apt-get install -y \
     build-essential binutils git ninja-build cmake bear python2.7 python3 python-pip python3-pip \
-    gcc g++ gcc-6 g++-6 libgomp1 libpomp-dev curl wget libcurl4-openssl-dev \
+    gcc g++ gcc-6 g++-6 libgomp1 libpomp-dev curl wget libcurl4-openssl-dev  graphviz\
     clang-5.0 lld-5.0 python-lldb-5.0 lldb-5.0 clang-tidy-5.0 clang-format-5.0 libomp5 \
     libboost-all-dev libpoco-dev catch libsdl2-dev libsfml-dev libeigen3-dev libtbb-dev \
     protobuf-compiler protobuf-c-compiler libtinyxml2-dev nlohmann-json-dev doxygen vim \
