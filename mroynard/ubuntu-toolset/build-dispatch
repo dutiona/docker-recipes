@@ -97,9 +97,9 @@ echo " * Cmake generator : <$CMAKE_GENERATOR>"
 echo " * Build directory : <$BUILD_DIRECTORY>"
 echo " * Source directory : <$SOURCE_DIRECTORY>"
 echo " * Compiler : <$COMPILER>"
-echo " * Target to build (docker) : <$TARGET>"
-echo " * Release type (docker) : <$RELEASE_TYPE>"
-echo " * Additional toolchain arguments (docker) : <$TOOLCHAIN_ARGS>"
+echo " * Target to build : <$TARGET>"
+echo " * Release type : <$RELEASE_TYPE>"
+echo " * Additional toolchain arguments : <$TOOLCHAIN_ARGS>"
 echo " * CMake version"
 cmake --version
 
@@ -133,7 +133,7 @@ pushd $BUILD_DIRECTORY
     fi
 
     if [ "$CMAKE_GENERATOR" != "" ]; then
-        cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $COVERAGE $TOOLCHAIN_ARGS
+        cmake -G $CMAKE_GENERATOR $COVERAGE $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
         cmake --build . --target $TARGET --config $RELEASE_TYPE
     else
         cmake $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
