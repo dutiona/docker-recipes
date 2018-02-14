@@ -11,6 +11,7 @@ SOURCE_DIRECTORY=".."
 TARGET="all"
 TOOLCHAIN_ARGS=""
 VERBOSE=""
+COVERAGE=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
 where:
@@ -31,7 +32,9 @@ where:
     -v --verbose                    if passed, enable verbose to underlying commands
 
     -f --force                      empty build directory to force a full rebuild
-    
+
+    -o --coverage                   run gcovr coverage tool
+
     --                              end of arguments for script, pass the rest to the toolchain via cmake
                                     useful for passing -D arguments
     "
@@ -50,6 +53,10 @@ case $key in
     ;;
     -v|--verbose)
     VERBOSE="VERBOSE=1"
+    shift
+    ;;
+    -o|--coverage)
+    COVERAGE="-DWITH_CODE_COVERAGE=ON"
     shift
     ;;
     -c|--compiler)
@@ -126,11 +133,15 @@ pushd $BUILD_DIRECTORY
     fi
 
     if [ "$CMAKE_GENERATOR" != "" ]; then
-        cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
+        cmake -G $CMAKE_GENERATOR $SOURCE_DIRECTORY $COVERAGE $TOOLCHAIN_ARGS
         cmake --build . --target $TARGET --config $RELEASE_TYPE
     else
         cmake $SOURCE_DIRECTORY $TOOLCHAIN_ARGS
         cmake --build . --target $TARGET --config $RELEASE_TYPE -- -j 4
+    fi
+
+    if [ "$COVERAGE" != "" ]; then
+        gcovr -r ../include
     fi
 
 popd

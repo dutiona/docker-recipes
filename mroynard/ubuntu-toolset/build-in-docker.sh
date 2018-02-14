@@ -11,6 +11,7 @@ SOURCE_DIRECTORY=".."
 TARGET="all"
 TOOLCHAIN_ARGS=""
 VERBOSE=""
+COVERAGE=""
 USAGE="$(basename "$0") [OPTIONS] -- execute a build toolchain
 
 where:
@@ -31,6 +32,8 @@ where:
     -v --verbose                    if passed, enable verbose to underlying commands
 
     -f --force                      empty build directory to force a full rebuild
+
+    -o --coverage                   run gcovr coverage tool
     
     --                              end of arguments for script, pass the rest to the toolchain via cmake
                                     useful for passing -D arguments
@@ -50,6 +53,10 @@ case $key in
     ;;
     -v|--verbose)
     VERBOSE="--verbose"
+    shift
+    ;;
+    -o|--coverage)
+    COVERAGE="--coverage"
     shift
     ;;
     -c|--compiler)
@@ -98,6 +105,7 @@ docker run --rm \
         /usr/local/bin/build-dispatch \
         $VERBOSE \
         $FORCE \
+        $COVERAGE \
         $CMAKE_GENERATOR_ARG \
         -c $COMPILER \
         -b $BUILD_DIRECTORY \
