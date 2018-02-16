@@ -8,14 +8,14 @@ ENV LC_ALL C.UTF-8
 # Install all pkg
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
 RUN apt-get update && apt-get dist-upgrade -y && apt-get upgrade -y
-RUN apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential binutils git ninja-build cmake bear python python3 python-pip python3-pip \
     gcc g++ gcc-6 g++-6 libgomp1 libpomp-dev curl wget libcurl4-openssl-dev graphviz \
     fuse snapcraft snapd snap-confine squashfuse
-RUN apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     clang-5.0 lld-5.0 python-lldb-5.0 lldb-5.0 clang-tidy-5.0 clang-format-5.0 libomp5 \
     libboost-all-dev libpoco-dev catch libsdl2-dev libsfml-dev libeigen3-dev libtbb-dev
-RUN apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     protobuf-compiler protobuf-c-compiler libtinyxml2-dev nlohmann-json-dev doxygen vim \
     glew-utils libglew-dev freeglut3-dev imagemagick libmagick++-dev libfreeimage-dev lcov gcovr
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove -y && apt-get autoclean -y && rm -rf /var/lib/apt/lists/
