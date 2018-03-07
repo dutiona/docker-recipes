@@ -1,4 +1,4 @@
-FROM ubuntu:artful
+FROM ubuntu:bionic
 LABEL maintainer="Michaël Roynard <mroynard@lrde.epita.fr>"
 
 ENV container docker
